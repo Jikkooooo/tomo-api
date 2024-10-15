@@ -4,7 +4,7 @@ const Tomo = require('../models/tomo'); // Correct import for the model
 const bcrypt = require('bcrypt'); // Import bcrypt for password hashing
 
 // CREATE a new user (register)
-router.post('/register', async (req, res) =>
+router.post('/tomo_users', async (req, res) =>
 {
     const { username, password } = req.body; // Get username and password from request body
 
@@ -38,7 +38,7 @@ router.post('/register', async (req, res) =>
 });
 
 // GET all users (optional, for testing)
-router.get('/', async (req, res) =>
+router.get('/tomo_users', async (req, res) =>
 {
     try
     {
