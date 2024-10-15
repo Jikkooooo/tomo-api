@@ -1,55 +1,88 @@
 const express = require('express');
 const router = express.Router();
-const Tomo = require('../models/tomo'); // Correct import for the model
-const bcrypt = require('bcrypt'); // Import bcrypt for password hashing
+const Tomo = require('../models/tomo');
 
-// CREATE a new user (register)
+// CREATE a new user
 router.post('/tomo_users', async (req, res) =>
 {
-    const { username, password } = req.body; // Get username and password from request body
+    const { username, password } = req.body;
+
+    if (!username || !password)
+    {
+        return res.status(400).json({ message: 'Username and password are required.' });
+    }
+
+    const tomo = new Tomo({ username, password });
 
     try
     {
-        // Check if the username already exists
-        const existingUser = await Tomo.findOne({ username });
-        if (existingUser)
-        {
-            return res.status(400).json({ message: 'User already exists' }); // User already exists
-        }
-
-        // Hash the password for security
-        const hashedPassword = await bcrypt.hash(password, 10);
-
-        // Create a new user instance
-        const newTomo = new Tomo({
-            username, // Username from the request
-            password: hashedPassword, // Store the hashed password
-        });
-
-        // Save the new user to the database
-        await newTomo.save();
-
-        res.status(201).json({ message: 'User created successfully', user: newTomo });
+        const newTomo = await tomo.save();
+        res.status(201).json(newTomo);
     } catch (err)
     {
-        console.error(err);
-        res.status(500).json({ message: 'Server error' }); // Handle server error
+        res.status(400).json({ message: err.message });
     }
 });
 
-// GET all users (optional, for testing)
-router.get('/tomo_users', async (req, res) =>
+// READ all users
+router.get('/', async (req, res) =>
 {
     try
     {
-        const tomos = await Tomo.find();
-        res.json(tomos);
+        const users = await Tomo.find();
+        res.json(users);
     } catch (err)
     {
         res.status(500).json({ message: err.message });
     }
 });
 
-// Additional routes can be implemented as needed
+// READ a specific user by ID
+router.get('/:id', async (req, res) =>
+{
+    try
+    {
+        const user = await Tomo.findById(req.params.id);
+        if (!user) return res.status(404).json({ message: 'User not found' });
+        res.json(user);
+    } catch (err)
+    {
+        res.status(500).json({ message: err.message });
+    }
+});
+
+// UPDATE a user by ID
+router.put('/:id', async (req, res) =>
+{
+    try
+    {
+        const { username, password } = req.body;
+        const updatedUser = await Tomo.findByIdAndUpdate(
+            req.params.id,
+            { username, password },
+            { new: true, runValidators: true } // Returns the updated user and runs validation
+        );
+
+        if (!updatedUser) return res.status(404).json({ message: 'User not found' });
+        res.json(updatedUser);
+    } catch (err)
+    {
+        res.status(400).json({ message: err.message });
+    }
+});
+
+// DELETE a user by ID
+router.delete('/:id', async (req, res) =>
+{
+    try
+    {
+        const deletedUser = await Tomo.findByIdAndDelete(req.params.id);
+        if (!deletedUser) return res.status(404).json({ message: 'User not found' });
+        res.json({ message: 'User deleted successfully' });
+    } catch (err)
+    {
+        res.status(500).json({ message: err.message });
+    }
+});
 
 module.exports = router;
