@@ -1,26 +1,26 @@
+require('dotenv').config();
 const express = require('express');
 const mongoose = require('mongoose');
-const bodyParser = require('body-parser');
 const cors = require('cors');
-const dbURI = process.env.MONGO_URL;
 
-// Initialize Express
 const app = express();
-const PORT = 5000;
+const PORT = process.env.PORT || 5000;
 
 // Middleware
-app.use(bodyParser.json());
+app.use(express.json());
 app.use(cors());
 
-require('dotenv').config();
-mongoose.connect(dbURI)
+// Connect to MongoDB
+mongoose.connect(process.env.MONGODB_URI, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+})
     .then(() => console.log('Connected to MongoDB'))
-    .catch(err => console.error('Could not connect to MongoDB', err));
+    .catch((err) => console.error('Could not connect to MongoDB:', err));
 
-
-// Routes
+// Import Routes
 const tomodachiRoute = require('./routes/tomodachi');
-app.use('/tomo-api/tomodachi', tomodachiRoute);
+app.use('/api/tomodachi', tomodachiRoute);
 
 // Start the server
 app.listen(PORT, () =>
