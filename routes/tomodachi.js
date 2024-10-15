@@ -3,7 +3,7 @@ const router = express.Router();
 const Tomo = require('../models/tomo');
 
 // CREATE a new user
-router.post('/tomo_users', async (req, res) =>
+router.post('/users', async (req, res) =>
 {
     const { username, password } = req.body;
 
@@ -12,12 +12,14 @@ router.post('/tomo_users', async (req, res) =>
         return res.status(400).json({ message: 'Username and password are required.' });
     }
 
-    const tomo = new Tomo({ username, password });
+    const hashedPassword = await bcrypt.hash(password, 10); // Hash the password
+
+    const newUser = new Tomo({ username, password: hashedPassword });
 
     try
     {
-        const newTomo = await tomo.save();
-        res.status(201).json(newTomo);
+        const savedUser = await newUser.save();
+        res.status(201).json(savedUser);
     } catch (err)
     {
         res.status(400).json({ message: err.message });
@@ -25,7 +27,7 @@ router.post('/tomo_users', async (req, res) =>
 });
 
 // READ all users
-router.get('/', async (req, res) =>
+router.get('/api/users', async (req, res) =>
 {
     try
     {
@@ -38,7 +40,7 @@ router.get('/', async (req, res) =>
 });
 
 // READ a specific user by ID
-router.get('/:id', async (req, res) =>
+router.get('/api/users/:id', async (req, res) =>
 {
     try
     {
@@ -52,7 +54,7 @@ router.get('/:id', async (req, res) =>
 });
 
 // UPDATE a user by ID
-router.put('/:id', async (req, res) =>
+router.put('/api/users/:id', async (req, res) =>
 {
     try
     {
@@ -72,7 +74,7 @@ router.put('/:id', async (req, res) =>
 });
 
 // DELETE a user by ID
-router.delete('/:id', async (req, res) =>
+router.delete('/api/users/:id', async (req, res) =>
 {
     try
     {
